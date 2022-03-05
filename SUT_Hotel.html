@@ -1,0 +1,461 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>SUT Hotel Booking</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+    <!-- <script src="./node_modules/web3/dist/web3.min.js">
+    </script> -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+</head>
+
+<body>
+    <style>
+        h1 {
+            text-align: center;
+        }
+        
+        p {
+            text-align: center;
+        }
+        
+        div {
+            text-align: center;
+        }
+    </style>
+    <h1 style="background-color:rgb(86, 161, 236);">SUT Hotel</h1>
+
+    <div class="grid-container">
+        <div>
+            <img src="https://setupmyhotel.com/images/Room-Type-Single-Room.jpg?ezimgfmt=rs:300x250/rscb337/ng:webp/ngcb337">
+            <br>
+            <strong style="color:rgb(7, 31, 248);">Single Room</strong>
+            <p style="color:rgb(57, 76, 247);"> 0.001 Ether </p>
+            <div class="center">
+                <button id="btreserve1">Reserve</button>
+            </div>
+        </div>
+        <div>
+            <img src="https://setupmyhotel.com/images/Room-Type-Double-Room.jpg?ezimgfmt=rs:300x250/rscb337/ng:webp/ngcb337">
+            <br>
+            <strong style="color:rgb(7, 31, 248);">Double Room</strong>
+            <p style="color:rgb(57, 76, 247);"> 0.002 Ether </p>
+            <div class="center">
+                <button id="btreserve2">Reserve</button>
+            </div>
+        </div>
+        <div>
+            <img src="https://setupmyhotel.com/images/Room-Type-Triple-Room.jpg?ezimgfmt=rs:300x250/rscb337/ng:webp/ngcb337">
+            <br>
+            <strong style="color:rgb(7, 31, 248);">Triple Room</strong>
+            <p style="color:rgb(57, 76, 247);"> 0.003 Ether </p>
+            <div class="center">
+                <button id="btreserve3">Reserve</button>
+            </div>
+        </div>
+        <div>
+            <img src="https://setupmyhotel.com/images/Room-Type-quad-Room.jpg?ezimgfmt=rs:300x250/rscb337/ng:webp/ngcb337">
+            <br>
+            <strong style="color:rgb(7, 31, 248);">Quad Room</strong>
+            <p style="color:rgb(57, 76, 247);"> 0.004 Ether </p>
+            <div class="center">
+                <button id="btreserve4">Reserve</button>
+            </div>
+        </div>
+        <div>
+            <img src="https://setupmyhotel.com/images/Room-Type-Queen-Room.jpg?ezimgfmt=rs:300x250/rscb337/ng:webp/ngcb337">
+            <br>
+            <strong style="color:rgb(7, 31, 248);">Queen Room</strong>
+            <p style="color:rgb(57, 76, 247);"> 0.005 Ether </p>
+            <div class="center">
+                <button id="btreserve5">Reserve</button>
+            </div>
+        </div>
+        <div>
+            <img src="https://setupmyhotel.com/images/Room-Type-King-Room.jpg?ezimgfmt=rs:300x250/rscb337/ng:webp/ngcb337">
+            <br>
+            <strong style="color:rgb(7, 31, 248);">King Room</strong>
+            <p style="color:rgb(57, 76, 247);"> 0.006 Ether </p>
+            <div class="center">
+                <button id="btreserve6">Reserve</button>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="center">
+        <button id="btcheck">Check</button>
+    </div>
+    <br>
+    <table style="width:100%" id="tbshowdata">
+        <tr>
+          <th>Time</th>
+          <th>Room</th> 
+          <th>Owner(address)</th>
+        </tr>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js">
+    </script>
+    <script>
+        async function loadWeb3() {
+            if (window.ethereum) {
+                window.web3 = new Web3(window.ethereum);
+                window.ethereum.enable();
+            }
+        }
+
+        let currentAccount = null;
+        window.ethereum
+            .request({
+                method: 'eth_accounts'
+            })
+            .then(handleAccountsChanged)
+            .catch((err) => {
+                // Some unexpected error.
+                // For backwards compatibility reasons, if no accounts are available,
+                // eth_accounts will return an empty array.
+                console.error(err);
+            });
+
+        // Note that this event is emitted on page load.
+        // If the array of accounts is non-empty, you're already
+        // connected.
+        window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+        // For now, 'eth_accounts' will continue to always return an array
+        function handleAccountsChanged(accounts) {
+            if (accounts.length === 0) {
+                // MetaMask is locked or the user has not connected any accounts
+                console.log('Please connect to MetaMask.');
+            } else if (accounts[0] !== currentAccount) {
+                currentAccount = accounts[0];
+                // Do any other work!
+                listtable();
+            }
+        }
+
+        let abi = [
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "from",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "text",
+                    "type": "string"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "bytes32",
+                    "name": "hash",
+                    "type": "bytes32"
+                }
+            ],
+            "name": "NameAdded",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": false,
+                    "internalType": "address",
+                    "name": "from",
+                    "type": "address"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "text",
+                    "type": "string"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "reason",
+                    "type": "string"
+                }
+            ],
+            "name": "RegistrationError",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "name",
+                    "type": "string"
+                }
+            ],
+            "name": "checkName",
+            "outputs": [
+                {
+                    "internalType": "bool",
+                    "name": "",
+                    "type": "bool"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getReserved",
+            "outputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "string",
+                            "name": "times",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "rooms",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "owner",
+                            "type": "string"
+                        }
+                    ],
+                    "internalType": "struct ProofOfStudent.Reserved[]",
+                    "name": "",
+                    "type": "tuple[]"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "owner",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "time",
+                    "type": "string"
+                }
+            ],
+            "name": "registration",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
+        }
+    ];
+
+        async function loadContract() {
+            return await new window.web3.eth.Contract(abi, '0xb0127234F5ea892B2DA77F6D04475deaA784B53B');
+        }
+
+        async function load() {
+            await loadWeb3();
+            window.contract = await loadContract();
+        }
+
+
+        function timenow() {
+            var times = new Date().toLocaleTimeString("en-US")
+            console.log(times)
+            return times;
+        }
+
+        function listtable() {
+            window.contract.methods.getReserved().call(function(error, result) {
+                console.log("result",result);
+
+                var table = document.getElementById("tbshowdata")
+                var body = table.createTBody();
+
+                result.forEach(element => {
+                    var row = body.insertRow(0);
+                    var cell0 = row.insertCell(0);
+                    cell0.innerHTML = element.times
+
+                    var cell1 = row.insertCell(1);
+                    cell1.innerHTML = element.rooms
+
+                    var cell2 = row.insertCell(2);
+                    cell2.innerHTML = element.owner
+                });
+            })
+        }
+
+
+        $("#btreserve1").click(function() {
+            console.log(currentAccount);
+            window.contract.methods.registration("Single", currentAccount, timenow())
+                .send({
+                    from: currentAccount,
+                    value: 1000000000000000
+                }, function(error, result) {
+                    $("#result").html(result);
+
+                });
+            window.contract.once('NameAdded', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>=> Hased as: >" + event.returnValues.hash);
+                    location.reload();
+                }
+            });
+            window.contract.once('RegistrationError', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>Reason" + event.returnValues.hash);
+                }
+            });
+        });
+        $("#btreserve2").click(function() {
+            console.log(currentAccount);
+            window.contract.methods.registration("Double", currentAccount, timenow())
+                .send({
+                    from: currentAccount,
+                    value: 2000000000000000
+                }, function(error, result) {
+                    $("#result").html(result);
+
+                });
+            window.contract.once('NameAdded', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>=> Hased as: >" + event.returnValues.hash);
+                    location.reload();
+                }
+            });
+            window.contract.once('RegistrationError', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>Reason" + event.returnValues.hash);
+                }
+            });
+        });
+        $("#btreserve3").click(function() {
+            console.log(currentAccount);
+            window.contract.methods.registration("Triple", currentAccount, timenow())
+                .send({
+                    from: currentAccount,
+                    value: 3000000000000000
+                }, function(error, result) {
+                    $("#result").html(result);
+
+                });
+            window.contract.once('NameAdded', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>=> Hased as: >" + event.returnValues.hash);
+                    location.reload();
+                }
+            });
+            window.contract.once('RegistrationError', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>Reason" + event.returnValues.hash);
+                }
+            });
+        });
+        $("#btreserve4").click(function() {
+            console.log(currentAccount);
+            window.contract.methods.registration("Quad", currentAccount, timenow())
+                .send({
+                    from: currentAccount,
+                    value: 4000000000000000
+                }, function(error, result) {
+                    $("#result").html(result);
+
+                });
+            window.contract.once('NameAdded', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>=> Hased as: >" + event.returnValues.hash);
+                    location.reload();
+                }
+            });
+            window.contract.once('RegistrationError', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>Reason" + event.returnValues.hash);
+                }
+            });
+        });
+        $("#btreserve5").click(function() {
+            console.log(currentAccount);
+            window.contract.methods.registration("Queen", currentAccount, timenow())
+                .send({
+                    from: currentAccount,
+                    value: 5000000000000000
+                }, function(error, result) {
+                    $("#result").html(result);
+
+                });
+            window.contract.once('NameAdded', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>=> Hased as: >" + event.returnValues.hash);
+                    location.reload();
+                }
+            });
+            window.contract.once('RegistrationError', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>Reason" + event.returnValues.hash);
+                }
+            });
+        });
+        $("#btreserve6").click(function() {
+            console.log(currentAccount);
+            window.contract.methods.registration("King", currentAccount, timenow())
+                .send({
+                    from: currentAccount,
+                    value: 6000000000000000
+                }, function(error, result) {
+                    $("#result").html(result);
+
+                });
+            window.contract.once('NameAdded', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>=> Hased as: >" + event.returnValues.hash);
+                    location.reload();
+                }
+            });
+            window.contract.once('RegistrationError', {}, function(error, result) {
+                if (!error) {
+                    console.log(event);
+                    $("#result").html("Name: " + event.returnValues.text + "<br/>Reason" + event.returnValues.hash);
+                }
+            });
+        });
+        $("#btcheck").click(function() {
+            window.contract.methods.checkName($("#document1").val()).call(function(error, result) {
+                if (!error) {
+                    if (result.toString() == "true") {
+                        $("#result").html("Reserve");
+                    } else {
+                        $("#result").html("Not Reserve");
+                    }
+                } else
+                    console.error(error);
+            });
+        });
+
+        load();
+    </script>
+</body>
+</html>
